@@ -23,3 +23,5 @@ private:
     void ScaleFilter();
 
 };
+
+std::vector<double> Filtering(std::vector<double> &signalIn_, Filter filter_, double gain_);

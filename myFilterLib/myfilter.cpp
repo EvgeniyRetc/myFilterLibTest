@@ -205,3 +205,18 @@ void Filter::ScaleFilter() {
 
 }
 
+std::vector<double> Filtering(std::vector<double> &signalIn_, Filter filter_, double gain_) {
+
+	std::vector<double>ImpulseResponse = filter_.GetImpulseResponse();
+	std::vector<double>signalOut(signalIn_.size());
+	for (int i = 0; i < signalIn_.size(); i++) {
+		signalOut[i] = 0;
+		for (int j = 0; j < ImpulseResponse.size(); j++) {
+			if (i - j >= 0) {
+				signalOut[i] += ImpulseResponse[j] * signalIn_[i - j];
+			}
+		}
+		signalOut[i] *= gain_;
+	}
+	return signalOut;
+}
