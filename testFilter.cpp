@@ -3,73 +3,74 @@
 #include <fstream>
 #include "myfilter.h"
 #include <locale>
+#include <iterator>
 #include "gtest/gtest.h"
 
 const int ORDER = 1024;
+const int START_COMPARE = 530;
 const int FREQ_SAMP = 44000;
+const double ACCURACY = 0.0178; //подавление в -35 dB
 
 TEST(testLowpass, testFilterLib){
 
-	std::string fileName = "..\..\files\sinus10k.txt";
+	std::string fileName = "..//files//sinus10k.txt";
 	std::vector <double> fromFile, filteredSignal;
-	std::vector<double> freqCut = { 5000 };
+	std::vector<double> freqCut = { 3000 };
 	std::ifstream inputFile(fileName);
 	std::istream_iterator<double> input(inputFile);
 	std::copy(input, std::istream_iterator<double>(), std::back_inserter(fromFile));
 	Filter lowpass(freqCut, FREQ_SAMP, ORDER, lowpass);
 	filteredSignal = Filtering(fromFile, lowpass, 1);
-	std::ofstream fileOut("sinForLowpass.txt");
-	std::copy(filteredSignal.begin(), filteredSignal.end(), std::ostream_iterator<double>(fileOut, " "));
-	for (int i = 0; i < filteredSignal.size(); i++) {
-		ASSERT_NEAR(filteredSignal[i], 0, 1e-5) << "Ќе были удовлетворены услови€ подавлени€ ‘Ќ„ фильтра";
+	for (int i = START_COMPARE; i < filteredSignal.size(); i++) {
+		ASSERT_NEAR(filteredSignal[i], 0, ACCURACY) << "Ќе были удовлетворены требовани€ по подавлению ‘Ќ„ фильтра";
 	}
 }	
 
-//TEST(testLowpass, testFilterLib) {
-//	const uint32_t NUMBER_OF_ELEMENTS = 10;
-//	int vector[NUMBER_OF_ELEMENTS] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, vectorRef[NUMBER_OF_ELEMENTS];
-//	GenerateRandomVector(vector, NUMBER_OF_ELEMENTS, 255);
-//	//копируем значение из основного вектора в опороный
-//	for (int i = 0; i < NUMBER_OF_ELEMENTS; i++) {
-//		vectorRef[i] = vector[i];
-//	}
-//	std::sort(vectorRef, vectorRef + NUMBER_OF_ELEMENTS);  // используем дл€ сравнени€ стандартную сортировку
-//	QsortFromDll(vector, 0, NUMBER_OF_ELEMENTS - 1);
-//	for (int i = 0; i < NUMBER_OF_ELEMENTS; i++) {
-//		ASSERT_EQ(vector[i], vectorRef[i]) << "ѕри тестировании сортированного вектора было найдено несоответствие";
-//	}
-//}
-//
-//TEST(testLowpass, testFilterLib) {
-//	const uint32_t NUMBER_OF_ELEMENTS = 10;
-//	int vector[NUMBER_OF_ELEMENTS] = { -1, -1, -1, 1, 1, -1, 1, -1, -1, 1 }, vectorRef[NUMBER_OF_ELEMENTS];
-//	GenerateRandomVector(vector, NUMBER_OF_ELEMENTS, 255);
-//	//копируем значение из основного вектора в опороный
-//	for (int i = 0; i < NUMBER_OF_ELEMENTS; i++) {
-//		vectorRef[i] = vector[i];
-//	}
-//	std::sort(vectorRef, vectorRef + NUMBER_OF_ELEMENTS);  // используем дл€ сравнени€ стандартную сортировку
-//	QsortFromDll(vector, 0, NUMBER_OF_ELEMENTS - 1);
-//	for (int i = 0; i < NUMBER_OF_ELEMENTS; i++) {
-//		ASSERT_EQ(vector[i], vectorRef[i]) << "ѕри тестировании  вектора состо€щего из -1, 1 было найдено несоответствие";
-//	}
-//}
-//
-//
-//TEST(testLowpass, testFilterLib) {
-//	const uint32_t NUMBER_OF_ELEMENTS = 10;
-//	int vector[NUMBER_OF_ELEMENTS] = { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 }, vectorRef[NUMBER_OF_ELEMENTS];
-//	GenerateRandomVector(vector, NUMBER_OF_ELEMENTS, 255);
-//	//копируем значение из основного вектора в опороный
-//	for (int i = 0; i < NUMBER_OF_ELEMENTS; i++) {
-//		vectorRef[i] = vector[i];
-//	}
-//	std::sort(vectorRef, vectorRef + NUMBER_OF_ELEMENTS);  // используем дл€ сравнени€ стандартную сортировку
-//	QsortFromDll(vector, 0, NUMBER_OF_ELEMENTS - 1);
-//	for (int i = 0; i < NUMBER_OF_ELEMENTS; i++) {
-//		ASSERT_EQ(vector[i], vectorRef[i]) << "ѕри тестировании обратно отсортированного вектора  было найдено несоответствие";
-//	}
-//}
+TEST(testHighpass, testFilterLib) {
+
+	std::string fileName = "..//files//sinus3k.txt";
+	std::vector <double> fromFile, filteredSignal;
+	std::vector<double> freqCut = { 10000 };
+	std::ifstream inputFile(fileName);
+	std::istream_iterator<double> input(inputFile);
+	std::copy(input, std::istream_iterator<double>(), std::back_inserter(fromFile));
+	Filter highpass(freqCut, FREQ_SAMP, ORDER, highpass);
+	filteredSignal = Filtering(fromFile, highpass, 1);
+	for (int i = START_COMPARE; i < filteredSignal.size(); i++) {
+		ASSERT_NEAR(filteredSignal[i], 0, ACCURACY) << "Ќе были удовлетворены требовани€ по подавлению ‘¬„ фильтра";
+	}
+}
+
+
+TEST(testPassband, testFilterLib) {
+
+	std::string fileName = "..//files//sinus3k10k.txt";
+	std::vector <double> fromFile, filteredSignal;
+	std::vector<double> freqs = { 7000, 8000 };
+	std::ifstream inputFile(fileName);
+	std::istream_iterator<double> input(inputFile);
+	std::copy(input, std::istream_iterator<double>(), std::back_inserter(fromFile));
+	Filter passband(freqs, FREQ_SAMP, ORDER, passband);
+	filteredSignal = Filtering(fromFile, passband, 1);
+	for (int i = 2*START_COMPARE; i < filteredSignal.size(); i++) {
+		ASSERT_NEAR(filteredSignal[i], 0, ACCURACY) << "Ќе были удовлетворены требовани€ по подавлению полосового фильтра";
+	}
+}
+
+TEST(testStopband, testFilterLib) {
+
+	std::string fileName = "..//files//sinus7_5k.txt";
+	std::vector <double> fromFile, filteredSignal;
+	std::vector<double> freqs = { 7000, 8000 };
+	std::ifstream inputFile(fileName);
+	std::istream_iterator<double> input(inputFile);
+	std::copy(input, std::istream_iterator<double>(), std::back_inserter(fromFile));
+	Filter stopband(freqs, FREQ_SAMP, ORDER, stopband);
+	filteredSignal = Filtering(fromFile, stopband, 1);
+	for (int i = 2*START_COMPARE; i < filteredSignal.size(); i++) {
+		ASSERT_NEAR(filteredSignal[i], 0, ACCURACY) << i << "Ќе были удовлетворены требовани€ по подавлению режекторного фильтра ";
+	}
+}
 
 
 
